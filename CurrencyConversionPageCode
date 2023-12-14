@@ -1,0 +1,123 @@
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
+
+public class CurrencyConverter extends JFrame {
+    private JTextField amountField;
+    private JComboBox<String> currencyComboBox;
+    private JLabel resultLabel;
+
+    private static final double USD_TO_CAND = 1.26;
+    private static final double USD_TO_PESO = 20.14;
+    private static final double USD_TO_RUPEE = 73.61;
+    private static final double USD_TO_POUND = 0.73;
+    private static final double USD_TO_EURO = 0.84;
+    private static final double USD_TO_AUSD = 1.36;
+    private static final double USD_TO_YEN = 114.33;
+    private static final double USD_TO_YUAN = 6.39;
+    private static final double USD_TO_NZD = 1.47;
+    private static final double USD_TO_DINAR = 1833.33;
+
+    public CurrencyConverter() {
+        setTitle("Currency Converter");
+        setSize(400, 200);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JPanel panel = new JPanel();
+        add(panel);
+        placeComponents(panel);
+
+        setVisible(true);
+    }
+
+    private void placeComponents(JPanel panel) {
+        panel.setLayout(null);
+
+        JLabel amountLabel = new JLabel("Enter USD amount:");
+        amountLabel.setBounds(10, 20, 150, 20);
+        panel.add(amountLabel);
+
+        amountField = new JTextField();
+        amountField.setBounds(180, 20, 150, 20);
+        panel.add(amountField);
+
+        JLabel currencyLabel = new JLabel("Select Currency:");
+        currencyLabel.setBounds(10, 50, 150, 20);
+        panel.add(currencyLabel);
+
+        String[] currencies = {"USD", "Canadian", "Pesos", "Rupees", "Pounds", "Euros", "Australian Dollars",
+                "Yen", "Yuan", "New Zealand Dollar", "African Dinar"};
+        currencyComboBox = new JComboBox<>(currencies);
+        currencyComboBox.setBounds(180, 50, 150, 20);
+        panel.add(currencyComboBox);
+
+        JButton convertButton = new JButton("Convert");
+        convertButton.setBounds(10, 80, 120, 25);
+        panel.add(convertButton);
+
+        resultLabel = new JLabel("Converted Amount:");
+        resultLabel.setBounds(10, 110, 250, 20);
+        panel.add(resultLabel);
+
+        convertButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                convertCurrency();
+            }
+        });
+    }
+
+    private void convertCurrency() {
+        try {
+            double usdAmount = Double.parseDouble(amountField.getText());
+            String selectedCurrency = (String) currencyComboBox.getSelectedItem();
+            double convertedAmount = 0;
+
+            switch (selectedCurrency) {
+                case "USD":
+                    convertedAmount = usdAmount;
+                    break;
+                case "Canadian":
+                    convertedAmount = usdAmount * USD_TO_CAND;
+                    break;
+                case "Pesos":
+                    convertedAmount = usdAmount * USD_TO_PESO;
+                    break;
+                case "Rupees":
+                    convertedAmount = usdAmount * USD_TO_RUPEE;
+                    break;
+                case "Pounds":
+                    convertedAmount = usdAmount * USD_TO_POUND;
+                    break;
+                case "Euros":
+                    convertedAmount = usdAmount * USD_TO_EURO;
+                    break;
+                case "Australian Dollars":
+                    convertedAmount = usdAmount * USD_TO_AUSD;
+                    break;
+                case "Yen":
+                    convertedAmount = usdAmount * USD_TO_YEN;
+                    break;
+                case "Yuan":
+                    convertedAmount = usdAmount * USD_TO_YUAN;
+                    break;
+                case "New Zealand Dollar":
+                    convertedAmount = usdAmount * USD_TO_NZD;
+                    break;
+                case "African Dinar":
+                    convertedAmount = usdAmount * USD_TO_DINAR;
+                    break;
+            }
+
+            DecimalFormat df = new DecimalFormat("#.##");
+            resultLabel.setText("Converted Amount: " + df.format(convertedAmount) + " " + selectedCurrency);
+        } catch (NumberFormatException ex) {
+            resultLabel.setText("Invalid input. Please enter a valid number.");
+        }
+    }
+
+    public static void main(String[] args) {
+        new CurrencyConverter();
+    }
+}
