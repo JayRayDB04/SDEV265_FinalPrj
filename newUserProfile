@@ -1,0 +1,94 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class UserRegistrationSystem extends JFrame {
+    private JTextField firstNameField, lastNameField, middleInitialField, phoneField, birthDateField,
+            streetAddressField, cityField, stateField, zipCodeField, emailField, usernameField, passwordField;
+
+    public UserRegistrationSystem() {
+        setTitle("User Registration System");
+        setSize(400, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JTabbedPane tabbedPane = new JTabbedPane();
+        add(tabbedPane);
+
+        createNewUserPage(tabbedPane);
+        createLogInPage(tabbedPane);
+
+        setVisible(true);
+    }
+
+    private void createNewUserPage(JTabbedPane tabbedPane) {
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+
+        JLabel titleLabel = new JLabel("Create New User");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setBounds(120, 10, 200, 30);
+        panel.add(titleLabel);
+
+        // Add other JLabels, JTextFields, and prompts here based on your requirements.
+
+        // Example fields:
+        addField(panel, "First Name:", 10, 50);
+        addField(panel, "Last Name:", 10, 80);
+        addField(panel, "Middle Initial:", 10, 110);
+        addField(panel, "Phone Number:", 10, 140);
+        addField(panel, "Birth Date (MM/DD/YYYY):", 10, 170);
+        addField(panel, "Street Address:", 10, 200);
+        addField(panel, "City:", 10, 230);
+        addField(panel, "State:", 10, 260);
+        addField(panel, "Zip Code:", 10, 290);
+        addField(panel, "Email:", 10, 320);
+        addField(panel, "Username (7-25 characters):", 10, 350);
+        addPasswordField(panel, "Password (8-20 characters, 1 uppercase, 2 numbers):", 10, 380);
+
+        JButton returnButton = new JButton("Return to Main Menu");
+        returnButton.setBounds(10, 420, 200, 25);
+        panel.add(returnButton);
+
+        returnButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                tabbedPane.setSelectedIndex(0); // Return to the Main Menu page
+            }
+        });
+
+        tabbedPane.addTab("Create New User", panel);
+    }
+
+    private void addField(JPanel panel, String labelText, int x, int y) {
+        JLabel label = new JLabel(labelText);
+        label.setBounds(x, y, 200, 20);
+        panel.add(label);
+
+        JTextField textField = new JTextField();
+        textField.setBounds(220, y, 150, 20);
+        panel.add(textField);
+    }
+
+    private void addPasswordField(JPanel panel, String labelText, int x, int y) {
+        JLabel label = new JLabel(labelText);
+        label.setBounds(x, y, 250, 20);
+        panel.add(label);
+
+        JPasswordField passwordField = new JPasswordField();
+        passwordField.setBounds(260, y, 110, 20);
+        panel.add(passwordField);
+    }
+
+    private void createLogInPage(JTabbedPane tabbedPane) {
+        JPanel panel = new JPanel();
+        // Add components for the Log In page
+        // (similar structure to the Create New User page)
+
+        tabbedPane.addTab("Log In", panel);
+    }
+
+    public static void main(String[] args) {
+        new UserRegistrationSystem();
+    }
+}
