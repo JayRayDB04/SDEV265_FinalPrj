@@ -1,0 +1,739 @@
+import javafx.scene.control.TextInputDialog;
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import javafx.scene.control.Alert;
+import javafx.collections.FXCollections;
+import javafx.scene.control.ComboBox;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
+
+public class Main extends Application {
+    private static final String USERS_FILE = "users.txt";
+    private static final int MAX_LOGIN_ATTEMPTS = 5;
+
+    private List<User> users;
+    private User currentUser;
+    private int loginAttempts;
+    private double savingsBalance;
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        users = loadUsers();
+
+        primaryStage.setTitle("Capybara Banking");
+
+        // Create login scene
+        Scene loginScene = createLoginScene(primaryStage);
+
+        // Show login scene
+        primaryStage.setScene(loginScene);
+        primaryStage.show();
+    }
+
+    private Scene createLoginScene(Stage primaryStage) {
+        GridPane grid = new GridPane();
+        grid.setPadding(new Insets(20, 20, 20, 20));
+        grid.setVgap(10);
+        grid.setHgap(10);
+
+        Label usernameLabel = new Label("Username:");
+        TextField usernameField = new TextField();
+
+        Label passwordLabel = new Label("Password:");
+        PasswordField passwordField = new PasswordField();
+
+        Button loginButton = new Button("Login");
+        loginButton.setOnAction(e -> handleLogin(primaryStage, usernameField.getText(), passwordField.getText()));
+
+        Button registerButton = new Button("Register");
+        registerButton.setOnAction(e -> showRegistrationPage(primaryStage));
+
+        grid.add(usernameLabel, 0, 0);
+        grid.add(usernameField, 1, 0);
+        grid.add(passwordLabel, 0, 1);
+        grid.add(passwordField, 1, 1);
+        grid.add(loginButton, 1, 2);
+        grid.add(registerButton, 2, 2);
+
+        return new Scene(grid, 400, 400);
+    }
+
+    private void handleLogin(Stage primaryStage, String username, String password) {
+        User user = findUser(username, password);
+
+        if (user != null) {
+            currentUser = user;
+            loginAttempts = 0;
+            showMainMenu(primaryStage);
+        } else {
+            loginAttempts++;
+            if (loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+                showAlert(Alert.AlertType.ERROR, "Maximum login attempts reached. Exiting.");
+                primaryStage.close();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Invalid username or password. Attempts left: " +
+                        (MAX_LOGIN_ATTEMPTS - loginAttempts));
+            }
+        }
+    }
+
+    private void showMainMenu(Stage primaryStage) {
+    	BorderPane borderPane = new BorderPane();
+        borderPane.setPadding(new Insets(10, 20, 10, 20));
+
+        Button homeButton = new Button("Home");
+        homeButton.setOnAction(e -> showHomePage(primaryStage));
+
+        Button accountsButton = new Button("Accounts");
+        accountsButton.setOnAction(e -> showAccountsPage(primaryStage));
+
+        Button currencyConverterButton = new Button("Currency Converter");
+        currencyConverterButton.setOnAction(e -> showCurrencyConverterPage(primaryStage));
+
+        Button contactUsButton = new Button("Contact Us");
+        contactUsButton.setOnAction(e -> showContactUsPage(primaryStage));
+
+        Button logOutButton = new Button("Log Out");
+        logOutButton.setOnAction(e -> logOutAndExit(primaryStage));
+
+        VBox menuBox = new VBox(10);
+        menuBox.getChildren().addAll(homeButton, accountsButton, currencyConverterButton, contactUsButton, logOutButton);
+
+        borderPane.setLeft(menuBox);
+
+        Scene mainMenuScene = new Scene(borderPane, 400, 400);
+        primaryStage.setScene(mainMenuScene);
+    }
+
+    private void logOutAndExit(Stage primaryStage) {
+        showAlert(Alert.AlertType.INFORMATION, "Goodbye! Logging out...");
+        primaryStage.close();
+    }
+    private void showHomePage(Stage primaryStage) {
+    	  Label fullNameLabel = new Label("Full Name: " + currentUser.getFullName());
+    	    Label phoneLabel = new Label("Phone: " + currentUser.getPhone());
+    	    Label addressLabel = new Label("Address: " + currentUser.getAddress());
+    	    Label emailLabel = new Label("Email: " + currentUser.getEmail());
+
+    	    VBox userInfoBox = new VBox(10);
+    	    userInfoBox.getChildren().addAll(fullNameLabel, phoneLabel, addressLabel, emailLabel);
+
+    	    Button editInfoButton = new Button("Edit Information");
+    	    editInfoButton.setOnAction(e -> showEditInfoPage(primaryStage));
+
+    	    Button returnButton = new Button("Return to Main Menu");
+    	    returnButton.setOnAction(e -> showMainMenu(primaryStage));
+
+    	    VBox homeBox = new VBox(20);
+    	    homeBox.getChildren().addAll(userInfoBox, editInfoButton, returnButton);
+
+    	    BorderPane borderPane = new BorderPane();
+    	    borderPane.setPadding(new Insets(10, 20, 10, 20));
+    	    borderPane.setCenter(homeBox);
+
+    	    Scene homeScene = new Scene(borderPane, 400, 400);
+    	    primaryStage.setScene(homeScene);
+    }
+
+    private void showAccountsPage(Stage primaryStage) {
+    	 Label checkingLabel = new Label("Checking Account Balance: $" + currentUser.getCheckingBalance());
+    	    Label savingsLabel = new Label("Savings Account Balance: $" + currentUser.getSavingsBalance());
+
+    	    Button depositCheckingButton = new Button("Deposit to Checking");
+    	    depositCheckingButton.setOnAction(e -> handleDepositToChecking(primaryStage));
+
+    	    Button withdrawCheckingButton = new Button("Withdraw from Checking");
+    	    withdrawCheckingButton.setOnAction(e -> handleWithdrawFromChecking(primaryStage));
+
+    	    Button depositSavingsButton = new Button("Deposit to Savings");
+    	    depositSavingsButton.setOnAction(e -> handleDepositToSavings(primaryStage));
+
+    	    Button withdrawSavingsButton = new Button("Withdraw from Savings");
+    	    withdrawSavingsButton.setOnAction(e -> handleWithdrawFromSavings(primaryStage));
+
+    	    Button returnButton = new Button("Return to Main Menu");
+    	    returnButton.setOnAction(e -> showMainMenu(primaryStage));
+
+    	    VBox accountsBox = new VBox(20);
+    	    accountsBox.getChildren().addAll(
+    	            checkingLabel, depositCheckingButton, withdrawCheckingButton,
+    	            savingsLabel, depositSavingsButton, withdrawSavingsButton, returnButton
+    	    );
+
+    	    BorderPane borderPane = new BorderPane();
+    	    borderPane.setPadding(new Insets(10, 20, 10, 20));
+    	    borderPane.setCenter(accountsBox);
+
+    	    Scene accountsScene = new Scene(borderPane, 400, 400);
+    	    primaryStage.setScene(accountsScene);
+    	}
+
+    	private void handleDepositToChecking(Stage primaryStage) {
+    	
+    		    TextInputDialog dialog = new TextInputDialog();
+    		    dialog.setTitle("Deposit to Checking");
+    		    dialog.setHeaderText("Enter the deposit amount:");
+    		    dialog.setContentText("Amount:");
+
+    		    Optional<String> result = dialog.showAndWait();
+    		    result.ifPresent(amountStr -> {
+    		        try {
+    		            double amount = Double.parseDouble(amountStr);
+    		            if (amount > 0) {
+    		                currentUser.depositToChecking(amount);
+    		                showAlert(Alert.AlertType.INFORMATION, "Deposit successful. New checking balance: $" + currentUser.getCheckingBalance());
+    		                saveUsers();
+    		                showAccountsPage(primaryStage);
+    		            } else {
+    		                showAlert(Alert.AlertType.ERROR, "Invalid deposit amount. Please enter a positive value.");
+    		            }
+    		        } catch (NumberFormatException e) {
+    		            showAlert(Alert.AlertType.ERROR, "Invalid input. Please enter a valid number.");
+    		        }
+    		    });
+    		}
+    	
+
+    	private void handleWithdrawFromChecking(Stage primaryStage) {
+    		 TextInputDialog dialog = new TextInputDialog();
+    		    dialog.setTitle("Withdraw from Checking");
+    		    dialog.setHeaderText("Enter the withdrawal amount:");
+    		    dialog.setContentText("Amount:");
+
+    		    Optional<String> result = dialog.showAndWait();
+    		    result.ifPresent(amountStr -> {
+    		        try {
+    		            double amount = Double.parseDouble(amountStr);
+    		            if (amount > 0) {
+    		                if (amount <= currentUser.getCheckingBalance()) {
+    		                    currentUser.withdrawFromChecking(amount);
+    		                    showAlert(Alert.AlertType.INFORMATION, "Withdrawal successful. New checking balance: $" + currentUser.getCheckingBalance());
+    		                    saveUsers();
+    		                    showAccountsPage(primaryStage);
+    		                } else {
+    		                    showAlert(Alert.AlertType.ERROR, "Insufficient funds in checking account.");
+    		                }
+    		            } else {
+    		                showAlert(Alert.AlertType.ERROR, "Invalid withdrawal amount. Please enter a positive value.");
+    		            }
+    		        } catch (NumberFormatException e) {
+    		            showAlert(Alert.AlertType.ERROR, "Invalid input. Please enter a valid number.");
+    		        }
+    		    });
+    	}
+
+    	private void handleDepositToSavings(Stage primaryStage) {
+    		    TextInputDialog dialog = new TextInputDialog();
+    		    dialog.setTitle("Deposit to Savings");
+    		    dialog.setHeaderText("Enter the deposit amount:");
+    		    dialog.setContentText("Amount:");
+
+    		    Optional<String> result = dialog.showAndWait();
+    		    result.ifPresent(amountStr -> {
+    		        try {
+    		            double amount = Double.parseDouble(amountStr);
+    		            if (amount > 0) {
+    		                currentUser.depositToSavings(amount);
+    		                showAlert(Alert.AlertType.INFORMATION, "Deposit successful. New savings balance: $" + currentUser.getSavingsBalance());
+    		                saveUsers();
+    		                showAccountsPage(primaryStage);
+    		            } else {
+    		                showAlert(Alert.AlertType.ERROR, "Invalid deposit amount. Please enter a positive value.");
+    		            }
+    		        } catch (NumberFormatException e) {
+    		            showAlert(Alert.AlertType.ERROR, "Invalid input. Please enter a valid number.");
+    		        }
+    		    });
+    	}
+
+    	private void handleWithdrawFromSavings(Stage primaryStage) {
+    		TextInputDialog dialog = new TextInputDialog();
+    	    dialog.setTitle("Withdraw from Savings");
+    	    dialog.setHeaderText("Enter the withdrawal amount:");
+    	    dialog.setContentText("Amount:");
+
+    	    Optional<String> result = dialog.showAndWait();
+    	    result.ifPresent(amountStr -> {
+    	        try {
+    	            double amount = Double.parseDouble(amountStr);
+    	            if (amount > 0) {
+    	                if (amount <= currentUser.getSavingsBalance()) {
+    	                    currentUser.withdrawFromSavings(amount);
+    	                    showAlert(Alert.AlertType.INFORMATION, "Withdrawal successful. New savings balance: $" + currentUser.getSavingsBalance());
+    	                    saveUsers();
+    	                    showAccountsPage(primaryStage);
+    	                } else {
+    	                    showAlert(Alert.AlertType.ERROR, "Insufficient funds in savings account.");
+    	                }
+    	            } else {
+    	                showAlert(Alert.AlertType.ERROR, "Invalid withdrawal amount. Please enter a positive value.");
+    	            }
+    	        } catch (NumberFormatException e) {
+    	            showAlert(Alert.AlertType.ERROR, "Invalid input. Please enter a valid number.");
+    	        }
+    	    });
+    	}
+    private void showCurrencyConverterPage(Stage primaryStage) {
+    	 Text amountLabel = new Text("Enter Amount (USD):");
+    	    TextField amountField = new TextField();
+
+    	    ComboBox<String> currencyComboBox = new ComboBox<>(FXCollections.observableArrayList(
+    	            "Canadian Dollars (CAD)", "Pound Sterling (GBP)", "Euros (EUR)",
+    	            "Dinar (KWD)", "Pesos (MXN)", "Rupees (INR)",
+    	            "Yen (JPY)", "Yuan (CNY)", "Australian Dollars (AUD)", "New Zealand Dollars (NZD)"
+    	    ));
+    	    currencyComboBox.setValue("Canadian Dollars (CAD)");
+
+    	    Button convertButton = new Button("Convert");
+    	    convertButton.setOnAction(e -> handleCurrencyConversion(primaryStage, amountField.getText(), currencyComboBox.getValue()));
+
+    	    Button returnButton = new Button("Return to Main Menu");
+    	    returnButton.setOnAction(e -> showMainMenu(primaryStage));
+
+    	    HBox inputBox = new HBox(10, amountLabel, amountField, currencyComboBox, convertButton);
+    	    VBox currencyConverterBox = new VBox(20, inputBox, returnButton);
+
+    	    BorderPane borderPane = new BorderPane();
+    	    borderPane.setPadding(new Insets(10, 20, 10, 20));
+    	    borderPane.setCenter(currencyConverterBox);
+
+    	    Scene currencyConverterScene = new Scene(borderPane, 800, 400);
+    	    primaryStage.setScene(currencyConverterScene);
+    	}
+
+    	private void handleCurrencyConversion(Stage primaryStage, String amountStr, String targetCurrency) {
+    	    try {
+    	        double amount = Double.parseDouble(amountStr);
+    	        double convertedAmount = convertCurrency(amount, targetCurrency);
+
+    	        showAlert(Alert.AlertType.INFORMATION, "Converted Amount: " + convertedAmount + " " + getCurrencySymbol(targetCurrency));
+    	    } catch (NumberFormatException e) {
+    	        showAlert(Alert.AlertType.ERROR, "Invalid input. Please enter a valid number.");
+    	    }
+    	}
+
+    	private double convertCurrency(double amount, String targetCurrency) {
+    	    Map<String, Double> exchangeRates = getExchangeRates();
+
+    	    if (exchangeRates.containsKey(targetCurrency)) {
+    	        double exchangeRate = exchangeRates.get(targetCurrency);
+    	        return amount * exchangeRate;
+    	    } else {
+    	        showAlert(Alert.AlertType.ERROR, "Invalid target currency selected.");
+    	        return 0;
+    	    }
+    	}
+
+    	private String getCurrencySymbol(String currency) {
+    	    Map<String, String> currencySymbols = new HashMap<>();
+    	    currencySymbols.put("Canadian Dollars (CAD)", "CAD");
+    	    currencySymbols.put("Pound Sterling (GBP)", "GBP");
+    	    currencySymbols.put("Euros (EUR)", "EUR");
+    	    currencySymbols.put("Dinar (KWD)", "KWD");
+    	    currencySymbols.put("Pesos (MXN)", "MXN");
+    	    currencySymbols.put("Rupees (INR)", "INR");
+    	    currencySymbols.put("Yen (JPY)", "JPY");
+    	    currencySymbols.put("Yuan (CNY)", "CNY");
+    	    currencySymbols.put("Australian Dollars (AUD)", "AUD");
+    	    currencySymbols.put("New Zealand Dollars (NZD)", "NZD");
+
+    	    return currencySymbols.get(currency);
+    	}
+
+    	private Map<String, Double> getExchangeRates() {
+    	    // You can replace this with actual exchange rates or use an API to get real-time rates
+    	    Map<String, Double> exchangeRates = new HashMap<>();
+    	    exchangeRates.put("Canadian Dollars (CAD)", 1.26);
+    	    exchangeRates.put("Pound Sterling (GBP)", 0.73);
+    	    exchangeRates.put("Euros (EUR)", 0.85);
+    	    exchangeRates.put("Dinar (KWD)", 0.30);
+    	    exchangeRates.put("Pesos (MXN)", 20.41);
+    	    exchangeRates.put("Rupees (INR)", 75.25);
+    	    exchangeRates.put("Yen (JPY)", 113.06);
+    	    exchangeRates.put("Yuan (CNY)", 6.39);
+    	    exchangeRates.put("Australian Dollars (AUD)", 1.35);
+    	    exchangeRates.put("New Zealand Dollars (NZD)", 1.45);
+
+    	    return exchangeRates;
+    } 
+
+    private void showContactUsPage(Stage primaryStage) {
+    	Label contactUsInfoLabel = new Label("Contact Us Here\n Email: capybarabank@gmail.com\n Phone:000-000-0000\n 1234 Capy Lane, Capybara Land");
+
+        Button returnButton = new Button("Return to Main Menu");
+        returnButton.setOnAction(e -> showMainMenu(primaryStage));
+
+        VBox contactUsBox = new VBox(20);
+        contactUsBox.getChildren().addAll(contactUsInfoLabel, returnButton);
+
+        BorderPane borderPane = new BorderPane();
+        borderPane.setPadding(new Insets(10, 20, 10, 20));
+        borderPane.setCenter(contactUsBox);
+
+        Scene contactUsScene = new Scene(borderPane, 400, 400);
+        primaryStage.setScene(contactUsScene);
+    }
+
+    private void showRegistrationPage(Stage primaryStage) {
+        GridPane grid = new GridPane();
+        grid.setPadding(new Insets(20, 20, 20, 20));
+        grid.setVgap(10);
+        grid.setHgap(10);
+
+        Label firstNameLabel = new Label("First Name:");
+        TextField firstNameField = new TextField();
+
+        Label lastNameLabel = new Label("Last Name:");
+        TextField lastNameField = new TextField();
+
+        Label usernameLabel = new Label("Username:");
+        TextField usernameField = new TextField();
+
+        Label passwordLabel = new Label("Password:");
+        PasswordField passwordField = new PasswordField();
+
+        Label phoneLabel = new Label("Phone Number:");
+        TextField phoneField = new TextField();
+
+        Label emailLabel = new Label("Email:");
+        TextField emailField = new TextField();
+
+        Label streetLabel = new Label("Street Address:");
+        TextField streetField = new TextField();
+
+        Label cityLabel = new Label("City:");
+        TextField cityField = new TextField();
+
+        Label zipLabel = new Label("Zip Code:");
+        TextField zipField = new TextField();
+
+        Button registerButton = new Button("Register");
+        registerButton.setOnAction(e -> handleRegistration(primaryStage,
+                firstNameField.getText(), lastNameField.getText(),
+                usernameField.getText(), passwordField.getText(),
+                phoneField.getText(), emailField.getText(),
+                streetField.getText(), cityField.getText(), zipField.getText()));
+       
+        Button returnButton = new Button("Return to Main Menu");
+        returnButton.setOnAction(e -> showMainMenu(primaryStage));
+        
+        grid.add(firstNameLabel, 0, 0);
+        grid.add(firstNameField, 1, 0);
+        grid.add(lastNameLabel, 0, 1);
+        grid.add(lastNameField, 1, 1);
+        grid.add(usernameLabel, 0, 2);
+        grid.add(usernameField, 1, 2);
+        grid.add(passwordLabel, 0, 3);
+        grid.add(passwordField, 1, 3);
+        grid.add(phoneLabel, 0, 4);
+        grid.add(phoneField, 1, 4);
+        grid.add(emailLabel, 0, 5);
+        grid.add(emailField, 1, 5);
+        grid.add(streetLabel, 0, 6);
+        grid.add(streetField, 1, 6);
+        grid.add(cityLabel, 0, 7);
+        grid.add(cityField, 1, 7);
+        grid.add(zipLabel, 0, 8);
+        grid.add(zipField, 1, 8);
+        grid.add(registerButton, 1, 9);
+
+        Scene registrationScene = new Scene(grid, 600, 600);
+        primaryStage.setScene(registrationScene);
+    }
+
+    private void handleRegistration(Stage primaryStage, String firstName, String lastName,
+                                    String username, String password,
+                                    String phone, String email,
+                                    String street, String city, String zip) {
+        User newUser = new User(username, password, firstName, lastName, phone, email, street, city, zip);
+        
+        newUser.setCheckingBalance(0.0);
+        newUser.setSavingsBalance(0.0);
+        
+        users.add(newUser);
+
+        saveUsers();
+
+        currentUser = newUser;
+
+        showMainMenu(primaryStage);
+    }
+
+    private User findUser(String username, String password) {
+        for (User user : users) {
+            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    private List<User> loadUsers() {
+        List<User> userList = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length == 9) {
+                    String username = parts[0].trim();
+                    String password = parts[1].trim();
+                    String firstName = parts[2].trim();
+                    String lastName = parts[3].trim();
+                    String phone = parts[4].trim();
+                    String email = parts[5].trim();
+                    String street = parts[6].trim();
+                    String city = parts[7].trim();
+                    String zip = parts[8].trim();
+                    userList.add(new User(username, password, firstName, lastName, phone, email, street, city, zip));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return userList;
+    }
+
+    private void saveUsers() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_FILE))) {
+            for (User user : users) {
+                writer.write(user.getUsername() + "," + user.getPassword() + ","
+                        + user.getFirstName() + "," + user.getLastName() + ","
+                        + user.getPhone() + "," + user.getEmail() + ","
+                        + user.getStreet() + "," + user.getCity() + "," + user.getZip());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showAlert(Alert.AlertType alertType, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showEditInfoPage(Stage primaryStage) {
+        GridPane grid = new GridPane();
+        grid.setPadding(new Insets(20, 20, 20, 20));
+        grid.setVgap(10);
+        grid.setHgap(10);
+
+        TextField firstNameField = new TextField(currentUser.getFirstName());
+        TextField lastNameField = new TextField(currentUser.getLastName());
+        TextField phoneField = new TextField(currentUser.getPhone());
+        TextField emailField = new TextField(currentUser.getEmail());
+        TextField streetField = new TextField(currentUser.getStreet());
+        TextField cityField = new TextField(currentUser.getCity());
+        TextField zipField = new TextField(currentUser.getZip());
+
+        Button saveButton = new Button("Save");
+        saveButton.setOnAction(e -> handleSaveInfo(primaryStage,
+                firstNameField.getText(), lastNameField.getText(),
+                phoneField.getText(), emailField.getText(),
+                streetField.getText(), cityField.getText(), zipField.getText()));
+
+        grid.add(new Label("First Name:"), 0, 0);
+        grid.add(firstNameField, 1, 0);
+        grid.add(new Label("Last Name:"), 0, 1);
+        grid.add(lastNameField, 1, 1);
+        grid.add(new Label("Phone Number:"), 0, 2);
+        grid.add(phoneField, 1, 2);
+        grid.add(new Label("Email:"), 0, 3);
+        grid.add(emailField, 1, 3);
+        grid.add(new Label("Street Address:"), 0, 4);
+        grid.add(streetField, 1, 4);
+        grid.add(new Label("City:"), 0, 5);
+        grid.add(cityField, 1, 5);
+        grid.add(new Label("Zip Code:"), 0, 6);
+        grid.add(zipField, 1, 6);
+        grid.add(saveButton, 1, 7);
+
+        Scene editInfoScene = new Scene(grid, 400, 400);
+        primaryStage.setScene(editInfoScene);
+    }
+
+    private void handleSaveInfo(Stage primaryStage, String firstName, String lastName,
+                                String phone, String email,
+                                String street, String city, String zip) {
+        currentUser.setFirstName(firstName);
+        currentUser.setLastName(lastName);
+        currentUser.setPhone(phone);
+        currentUser.setEmail(email);
+        currentUser.setStreet(street);
+        currentUser.setCity(city);
+        currentUser.setZip(zip);
+
+        saveUsers();
+
+        showHomePage(primaryStage);
+    }
+
+    private static class User {
+        private final String username;
+        private final String password;
+        private String firstName;
+        private String lastName;
+        private String phone;
+        private String email;
+        private String street;
+        private String city;
+        private String zip;
+        private double checkingBalance;
+        private double savingsBalance;
+        
+        public User(String username, String password, String firstName, String lastName,
+                    String phone, String email, String street, String city, String zip) {
+            this.username = username;
+            this.password = password;
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.phone = phone;
+            this.email = email;
+            this.street = street;
+            this.city = city;
+            this.zip = zip;
+            this.checkingBalance = 0.0;
+            this.savingsBalance = 0.0;
+        }
+
+        public void withdrawFromSavings(double amount) {
+        	 if (savingsBalance >= amount) {
+                 savingsBalance -= amount;
+             } else {
+                 showAlert(Alert.AlertType.ERROR, "Insufficient funds in savings account.");
+             }
+			
+		}
+
+		public void depositToSavings(double amount) {
+			  savingsBalance += amount;
+			
+		}
+
+		public void withdrawFromChecking(double amount) {
+			if (checkingBalance >= amount) {
+                checkingBalance -= amount;
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Insufficient funds in checking account.");
+            }
+			
+		}
+
+		public void depositToChecking(double amount) {
+			checkingBalance += amount;
+			
+		}
+
+		public double getCheckingBalance() {
+            return checkingBalance;
+        }
+
+        public void setCheckingBalance(double checkingBalance) {
+            this.checkingBalance = checkingBalance;
+        }
+
+        public double getSavingsBalance() {
+            return savingsBalance;
+        }
+
+        public void setSavingsBalance(double savingsBalance) {
+            this.savingsBalance = savingsBalance;
+        }
+        
+        public String getUsername() {
+            return username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public String getFirstName() {
+            return firstName;
+        }
+
+        public void setFirstName(String firstName) {
+            this.firstName = firstName;
+        }
+
+        public String getLastName() {
+            return lastName;
+        }
+
+        public void setLastName(String lastName) {
+            this.lastName = lastName;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getStreet() {
+            return street;
+        }
+
+        public void setStreet(String street) {
+            this.street = street;
+        }
+
+        public String getCity() {
+            return city;
+        }
+
+        public void setCity(String city) {
+            this.city = city;
+        }
+
+        public String getZip() {
+            return zip;
+        }
+
+        public void setZip(String zip) {
+            this.zip = zip;
+        }
+
+        public String getFullName() {
+            return firstName + " " + lastName;
+        }
+
+        public String getAddress() {
+            return street + ", " + city + ", " + zip;
+        }
+        private void showAlert(Alert.AlertType alertType, String message) {
+            Alert alert = new Alert(alertType);
+            alert.setContentText(message);
+            alert.showAndWait();
+        } 
+    }
+}
+
