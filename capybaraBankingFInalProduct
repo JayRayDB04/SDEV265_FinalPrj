@@ -1,3 +1,10 @@
+//Capybara Banking International
+//Debra, Jesus, Mamadou, Jay
+// Banking application for final project
+//Last date edited:12/16/2023
+
+
+
 import javafx.scene.control.TextInputDialog;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -46,13 +53,13 @@ public class Main extends Application {
         primaryStage.setScene(loginScene);
         primaryStage.show();
     }
-
+//log in screen implementation
     private Scene createLoginScene(Stage primaryStage) {
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(20, 20, 20, 20));
         grid.setVgap(10);
         grid.setHgap(10);
-
+//log in credentials
         Label usernameLabel = new Label("Username:");
         TextField usernameField = new TextField();
 
@@ -74,7 +81,7 @@ public class Main extends Application {
 
         return new Scene(grid, 400, 400);
     }
-
+//amount lock on user credentials mistakes
     private void handleLogin(Stage primaryStage, String username, String password) {
         User user = findUser(username, password);
 
@@ -93,23 +100,23 @@ public class Main extends Application {
             }
         }
     }
-
+//create main menu and buttons for different features
     private void showMainMenu(Stage primaryStage) {
     	BorderPane borderPane = new BorderPane();
         borderPane.setPadding(new Insets(10, 20, 10, 20));
-
-        Button homeButton = new Button("Home");
+//profile button
+        Button homeButton = new Button("Profile");
         homeButton.setOnAction(e -> showHomePage(primaryStage));
-
+//accounts button
         Button accountsButton = new Button("Accounts");
         accountsButton.setOnAction(e -> showAccountsPage(primaryStage));
-
+//currency converter button
         Button currencyConverterButton = new Button("Currency Converter");
         currencyConverterButton.setOnAction(e -> showCurrencyConverterPage(primaryStage));
-
+//contact us button
         Button contactUsButton = new Button("Contact Us");
         contactUsButton.setOnAction(e -> showContactUsPage(primaryStage));
-
+//log out button
         Button logOutButton = new Button("Log Out");
         logOutButton.setOnAction(e -> logOutAndExit(primaryStage));
 
@@ -121,11 +128,13 @@ public class Main extends Application {
         Scene mainMenuScene = new Scene(borderPane, 400, 400);
         primaryStage.setScene(mainMenuScene);
     }
-
+//log out functions to terminate program
     private void logOutAndExit(Stage primaryStage) {
         showAlert(Alert.AlertType.INFORMATION, "Goodbye! Logging out...");
         primaryStage.close();
     }
+    
+//Profile display page    
     private void showHomePage(Stage primaryStage) {
     	  Label fullNameLabel = new Label("Full Name: " + currentUser.getFullName());
     	    Label phoneLabel = new Label("Phone: " + currentUser.getPhone());
@@ -134,10 +143,10 @@ public class Main extends Application {
 
     	    VBox userInfoBox = new VBox(10);
     	    userInfoBox.getChildren().addAll(fullNameLabel, phoneLabel, addressLabel, emailLabel);
-
+//edit information feature
     	    Button editInfoButton = new Button("Edit Information");
     	    editInfoButton.setOnAction(e -> showEditInfoPage(primaryStage));
-
+//return to main page
     	    Button returnButton = new Button("Return to Main Menu");
     	    returnButton.setOnAction(e -> showMainMenu(primaryStage));
 
@@ -151,23 +160,24 @@ public class Main extends Application {
     	    Scene homeScene = new Scene(borderPane, 400, 400);
     	    primaryStage.setScene(homeScene);
     }
-
+// account page implementation
     private void showAccountsPage(Stage primaryStage) {
-    	 Label checkingLabel = new Label("Checking Account Balance: $" + currentUser.getCheckingBalance());
+//set up checking and savings account
+    	    Label checkingLabel = new Label("Checking Account Balance: $" + currentUser.getCheckingBalance());
     	    Label savingsLabel = new Label("Savings Account Balance: $" + currentUser.getSavingsBalance());
-
+//deposit for checking account feature
     	    Button depositCheckingButton = new Button("Deposit to Checking");
     	    depositCheckingButton.setOnAction(e -> handleDepositToChecking(primaryStage));
-
+//withdraw from checkings feature
     	    Button withdrawCheckingButton = new Button("Withdraw from Checking");
     	    withdrawCheckingButton.setOnAction(e -> handleWithdrawFromChecking(primaryStage));
-
+// deposit in savings feature
     	    Button depositSavingsButton = new Button("Deposit to Savings");
     	    depositSavingsButton.setOnAction(e -> handleDepositToSavings(primaryStage));
-
+// withdraw savings button
     	    Button withdrawSavingsButton = new Button("Withdraw from Savings");
     	    withdrawSavingsButton.setOnAction(e -> handleWithdrawFromSavings(primaryStage));
-
+//return to main menu
     	    Button returnButton = new Button("Return to Main Menu");
     	    returnButton.setOnAction(e -> showMainMenu(primaryStage));
 
@@ -184,7 +194,7 @@ public class Main extends Application {
     	    Scene accountsScene = new Scene(borderPane, 400, 400);
     	    primaryStage.setScene(accountsScene);
     	}
-
+// deposit to checking features implementation 
     	private void handleDepositToChecking(Stage primaryStage) {
     	
     		    TextInputDialog dialog = new TextInputDialog();
@@ -210,7 +220,7 @@ public class Main extends Application {
     		    });
     		}
     	
-
+// withdraw from checking features implementation
     	private void handleWithdrawFromChecking(Stage primaryStage) {
     		 TextInputDialog dialog = new TextInputDialog();
     		    dialog.setTitle("Withdraw from Checking");
@@ -238,7 +248,7 @@ public class Main extends Application {
     		        }
     		    });
     	}
-
+// deposit to savings features implementation
     	private void handleDepositToSavings(Stage primaryStage) {
     		    TextInputDialog dialog = new TextInputDialog();
     		    dialog.setTitle("Deposit to Savings");
@@ -262,7 +272,7 @@ public class Main extends Application {
     		        }
     		    });
     	}
-
+//withdraw from savings feature implementation
     	private void handleWithdrawFromSavings(Stage primaryStage) {
     		TextInputDialog dialog = new TextInputDialog();
     	    dialog.setTitle("Withdraw from Savings");
@@ -290,17 +300,18 @@ public class Main extends Application {
     	        }
     	    });
     	}
+//currency converter implementation	
     private void showCurrencyConverterPage(Stage primaryStage) {
     	 Text amountLabel = new Text("Enter Amount (USD):");
     	    TextField amountField = new TextField();
-
+//set up features and currencies
     	    ComboBox<String> currencyComboBox = new ComboBox<>(FXCollections.observableArrayList(
     	            "Canadian Dollars (CAD)", "Pound Sterling (GBP)", "Euros (EUR)",
     	            "Dinar (KWD)", "Pesos (MXN)", "Rupees (INR)",
     	            "Yen (JPY)", "Yuan (CNY)", "Australian Dollars (AUD)", "New Zealand Dollars (NZD)"
     	    ));
     	    currencyComboBox.setValue("Canadian Dollars (CAD)");
-
+//button to convert amounts
     	    Button convertButton = new Button("Convert");
     	    convertButton.setOnAction(e -> handleCurrencyConversion(primaryStage, amountField.getText(), currencyComboBox.getValue()));
 
@@ -317,7 +328,7 @@ public class Main extends Application {
     	    Scene currencyConverterScene = new Scene(borderPane, 800, 400);
     	    primaryStage.setScene(currencyConverterScene);
     	}
-
+// implementation for conversions
     	private void handleCurrencyConversion(Stage primaryStage, String amountStr, String targetCurrency) {
     	    try {
     	        double amount = Double.parseDouble(amountStr);
@@ -340,7 +351,7 @@ public class Main extends Application {
     	        return 0;
     	    }
     	}
-
+//creating the symbols for currency
     	private String getCurrencySymbol(String currency) {
     	    Map<String, String> currencySymbols = new HashMap<>();
     	    currencySymbols.put("Canadian Dollars (CAD)", "CAD");
@@ -356,7 +367,7 @@ public class Main extends Application {
 
     	    return currencySymbols.get(currency);
     	}
-
+//algorithm for implementing the feature effectivley
     	private Map<String, Double> getExchangeRates() {
     	    // You can replace this with actual exchange rates or use an API to get real-time rates
     	    Map<String, Double> exchangeRates = new HashMap<>();
@@ -373,7 +384,7 @@ public class Main extends Application {
 
     	    return exchangeRates;
     } 
-
+//implementation of the contact us page
     private void showContactUsPage(Stage primaryStage) {
     	Label contactUsInfoLabel = new Label("Contact Us Here\n Email: capybarabank@gmail.com\n Phone:000-000-0000\n 1234 Capy Lane, Capybara Land");
 
@@ -390,13 +401,13 @@ public class Main extends Application {
         Scene contactUsScene = new Scene(borderPane, 400, 400);
         primaryStage.setScene(contactUsScene);
     }
-
+//implementation of the registration page
     private void showRegistrationPage(Stage primaryStage) {
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(20, 20, 20, 20));
         grid.setVgap(10);
         grid.setHgap(10);
-
+//create registration fields
         Label firstNameLabel = new Label("First Name:");
         TextField firstNameField = new TextField();
 
@@ -457,7 +468,6 @@ public class Main extends Application {
         Scene registrationScene = new Scene(grid, 600, 600);
         primaryStage.setScene(registrationScene);
     }
-
     private void handleRegistration(Stage primaryStage, String firstName, String lastName,
                                     String username, String password,
                                     String phone, String email,
@@ -598,7 +608,7 @@ public class Main extends Application {
         private String zip;
         private double checkingBalance;
         private double savingsBalance;
-        
+//user classes        
         public User(String username, String password, String firstName, String lastName,
                     String phone, String email, String street, String city, String zip) {
             this.username = username;
@@ -613,7 +623,7 @@ public class Main extends Application {
             this.checkingBalance = 0.0;
             this.savingsBalance = 0.0;
         }
-
+//implementation of withdraw feature
         public void withdrawFromSavings(double amount) {
         	 if (savingsBalance >= amount) {
                  savingsBalance -= amount;
@@ -622,7 +632,7 @@ public class Main extends Application {
              }
 			
 		}
-
+//implementation of deposit features
 		public void depositToSavings(double amount) {
 			  savingsBalance += amount;
 			
@@ -636,7 +646,7 @@ public class Main extends Application {
             }
 			
 		}
-
+// display amount updates
 		public void depositToChecking(double amount) {
 			checkingBalance += amount;
 			
@@ -736,4 +746,6 @@ public class Main extends Application {
         } 
     }
 }
+
+
 
